@@ -1,25 +1,27 @@
-// RPG Tetris — oyun mantığı (1/2): durum, çizim, arayüz.
+// RPG Tetris — oyun mantığı (tek dosya).
 // Sprite'lar varliklar.js üzerinden Sprite Atölye görsellerinden yüklenir.
 
 const tuval = document.getElementById('oyun');
 const ctx = tuval.getContext('2d');
-const siradakiTuval = document.getElementById('siradaki');
+const siradakiTuval = document.getElementById('sonraki');
 const sctx = siradakiTuval.getContext('2d');
 const KAHRAMAN_TUVAL = document.getElementById('kahraman');
 const DUSMAN_TUVAL = document.getElementById('dusman');
 
 const el = {
   seviye: document.getElementById('seviye'),
-  skor: document.getElementById('skor'),
-  satir: document.getElementById('satir'),
   hpDolu: document.getElementById('hp-dolu'),
   hpYazi: document.getElementById('hp-yazi'),
   xpDolu: document.getElementById('xp-dolu'),
   xpYazi: document.getElementById('xp-yazi'),
   dusmanAd: document.getElementById('dusman-ad'),
-  dusmanHpDolu: document.getElementById('dusman-hp-dolu'),
-  dusmanHpYazi: document.getElementById('dusman-hp-yazi'),
+  dusmanDolu: document.getElementById('dusman-dolu'),
+  dusmanYazi: document.getElementById('dusman-yazi'),
+  dusmanEtiket: document.getElementById('dusman-etiket'),
   yetenekler: document.getElementById('yetenekler'),
+  skor: document.getElementById('skor'),
+  satir: document.getElementById('satir'),
+  kombo: document.getElementById('kombo'),
   perde: document.getElementById('perde'),
   perdeBaslik: document.getElementById('perde-baslik'),
   perdeMetin: document.getElementById('perde-metin'),
@@ -32,8 +34,6 @@ const durum = {
   tahta: [],
   parca: null,
   siradaki: null,
-  dusmeZamani: 0,
-  calisiyor: false,
   skor: 0,
   satirSayisi: 0,
   seviye: 1,
@@ -42,7 +42,9 @@ const durum = {
   dusmanIndeks: 0,
   dusmanHp: 0,
   dusmanMaksHp: 0,
-  kombo: 0
+  kombo: 0,
+  calisiyor: false,
+  dusmeZamani: 0
 };
 
 function bosTahta() {
@@ -52,15 +54,25 @@ function bosTahta() {
 function rastgeleParca() {
   const anahtarlar = Object.keys(SEKILLER);
   const tip = anahtarlar[Math.floor(Math.random() * anahtarlar.length)];
-  return { tip, sekil: SEKILLER[tip].map((r) => r.slice()), x: Math.floor(AYAR.sutun / 2) - 1, y: 0 };
+  return { tip, sekil: SEKILLER[tip].map((s) => s.slice()), x: 0, y: 0 };
+}
+
+function dondur(sekil) {
+  const h = sekil.length;
+  const w = sekil[0].length;
+  const yeni = Array.from({ length: w }, () => Array(h).fill(0));
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) yeni[x][h - 1 - y] = sekil[y][x];
+  }
+  return yeni;
 }
 
 function carpisma(sekil, px, py) {
   for (let y = 0; y < sekil.length; y++) {
     for (let x = 0; x < sekil[y].length; x++) {
       if (!sekil[y][x]) continue;
-      const tx = px + x;
       const ty = py + y;
+      const tx = px + x;
       if (tx < 0 || tx >= AYAR.sutun || ty >= AYAR.satir) return true;
       if (ty >= 0 && durum.tahta[ty][tx]) return true;
     }
@@ -68,17 +80,7 @@ function carpisma(sekil, px, py) {
   return false;
 }
 
-function dondur(sekil) {
-  const satirSay = sekil.length;
-  const sutunSay = sekil[0].length;
-  const yeni = Array.from({ length: sutunSay }, () => Array(satirSay).fill(0));
-  for (let y = 0; y < satirSay; y++) {
-    for (let x = 0; x < sutunSay; x++) {
-      yeni[x][satirSay - 1 - y] = sekil[y][x];
-    }
-  }
-  return yeni;
-}
+// ---------- Çizim ----------
 
 function blokCiz(c, px, py, boyut, tip) {
   c.fillStyle = AYAR.renkler[tip] || '#888';
@@ -91,6 +93,7 @@ function blokCiz(c, px, py, boyut, tip) {
 }
 
 function tahtaCiz() {
+  const k = AYAR.kare;
   ctx.fillStyle = '#0d0d16';
   ctx.fillRect(0, 0, tuval.width, tuval.height);
 
@@ -98,28 +101,28 @@ function tahtaCiz() {
   ctx.lineWidth = 1;
   for (let x = 1; x < AYAR.sutun; x++) {
     ctx.beginPath();
-    ctx.moveTo(x * AYAR.kare, 0);
-    ctx.lineTo(x * AYAR.kare, tuval.height);
+    ctx.moveTo(x * k, 0);
+    ctx.lineTo(x * k, tuval.height);
     ctx.stroke();
   }
   for (let y = 1; y < AYAR.satir; y++) {
     ctx.beginPath();
-    ctx.moveTo(0, y * AYAR.kare);
-    ctx.lineTo(tuval.width, y * AYAR.kare);
+    ctx.moveTo(0, y * k);
+    ctx.lineTo(tuval.width, y * k);
     ctx.stroke();
   }
 
   for (let y = 0; y < AYAR.satir; y++) {
     for (let x = 0; x < AYAR.sutun; x++) {
-      if (durum.tahta[y][x]) blokCiz(ctx, x * AYAR.kare, y * AYAR.kare, AYAR.kare, durum.tahta[y][x]);
+      if (durum.tahta[y][x]) blokCiz(ctx, x * k, y * k, k, durum.tahta[y][x]);
     }
   }
 
-  if (durum.parca) {
-    const p = durum.parca;
+  const p = durum.parca;
+  if (p) {
     for (let y = 0; y < p.sekil.length; y++) {
       for (let x = 0; x < p.sekil[y].length; x++) {
-        if (p.sekil[y][x]) blokCiz(ctx, (p.x + x) * AYAR.kare, (p.y + y) * AYAR.kare, AYAR.kare, p.tip);
+        if (p.sekil[y][x] && p.y + y >= 0) blokCiz(ctx, (p.x + x) * k, (p.y + y) * k, k, p.tip);
       }
     }
   }
@@ -127,52 +130,52 @@ function tahtaCiz() {
 
 function siradakiCiz() {
   sctx.clearRect(0, 0, siradakiTuval.width, siradakiTuval.height);
-  if (!durum.siradaki) return;
-  const boyut = 20;
   const p = durum.siradaki;
-  const basX = (siradakiTuval.width - p.sekil[0].length * boyut) / 2;
-  const basY = (siradakiTuval.height - p.sekil.length * boyut) / 2;
+  if (!p) return;
+  const k = 24;
+  const w = p.sekil[0].length * k;
+  const h = p.sekil.length * k;
+  const ox = (siradakiTuval.width - w) / 2;
+  const oy = (siradakiTuval.height - h) / 2;
   for (let y = 0; y < p.sekil.length; y++) {
     for (let x = 0; x < p.sekil[y].length; x++) {
-      if (p.sekil[y][x]) blokCiz(sctx, basX + x * boyut, basY + y * boyut, boyut, p.tip);
+      if (p.sekil[y][x]) blokCiz(sctx, ox + x * k, oy + y * k, k, p.tip);
     }
   }
 }
 
 function karakterleriCiz() {
-  const kctx = KAHRAMAN_TUVAL.getContext('2d');
-  varlikCiz(kctx, VARLIK_ADLARI.kahraman, KAHRAMAN_TUVAL.width, 'kahraman');
-
-  const dctx = DUSMAN_TUVAL.getContext('2d');
+  varlikCiz(KAHRAMAN_TUVAL.getContext('2d'), VARLIK_ADLARI.kahraman, KAHRAMAN_TUVAL.width, 'kahraman');
   const ad = VARLIK_ADLARI.dusmanlar[durum.dusmanIndeks % VARLIK_ADLARI.dusmanlar.length];
-  varlikCiz(dctx, ad, DUSMAN_TUVAL.width, 'dusman', durum.dusmanIndeks);
+  varlikCiz(DUSMAN_TUVAL.getContext('2d'), ad, DUSMAN_TUVAL.width, 'dusman', durum.dusmanIndeks);
 }
+
+// ---------- Arayüz ----------
 
 function arayuzGuncelle() {
   el.seviye.textContent = durum.seviye;
-  el.skor.textContent = durum.skor;
-  el.satir.textContent = durum.satirSayisi;
+  el.hpDolu.style.width = Math.max(0, (durum.hp / AYAR.kahramanHp) * 100) + '%';
+  el.hpYazi.textContent = Math.max(0, durum.hp) + '/' + AYAR.kahramanHp;
 
-  const hpOran = Math.max(0, durum.hp) / AYAR.kahramanHp;
-  el.hpDolu.style.width = (hpOran * 100) + '%';
-  el.hpYazi.textContent = Math.max(0, Math.round(durum.hp)) + ' / ' + AYAR.kahramanHp;
-
-  const xpGerek = AYAR.xpTaban + (durum.seviye - 1) * AYAR.xpArtis;
-  el.xpDolu.style.width = Math.min(100, (durum.xp / xpGerek) * 100) + '%';
-  el.xpYazi.textContent = durum.xp + ' / ' + xpGerek;
+  const gerek = AYAR.xpTaban + (durum.seviye - 1) * AYAR.xpArtis;
+  el.xpDolu.style.width = Math.min(100, (durum.xp / gerek) * 100) + '%';
+  el.xpYazi.textContent = durum.xp + '/' + gerek;
 
   el.dusmanAd.textContent = DUSMAN_ADLARI[durum.dusmanIndeks % DUSMAN_ADLARI.length];
-  const dOran = durum.dusmanMaksHp ? Math.max(0, durum.dusmanHp) / durum.dusmanMaksHp : 0;
-  el.dusmanHpDolu.style.width = (dOran * 100) + '%';
-  el.dusmanHpYazi.textContent = Math.max(0, Math.round(durum.dusmanHp)) + ' / ' + durum.dusmanMaksHp;
+  el.dusmanDolu.style.width = Math.max(0, (durum.dusmanHp / durum.dusmanMaksHp) * 100) + '%';
+  el.dusmanYazi.textContent = Math.max(0, durum.dusmanHp) + '/' + durum.dusmanMaksHp;
+  const sonraki = DUSMAN_ADLARI[(durum.dusmanIndeks + 1) % DUSMAN_ADLARI.length];
+  el.dusmanEtiket.textContent = 'Sıradaki: ' + sonraki;
+
+  el.skor.textContent = durum.skor;
+  el.satir.textContent = durum.satirSayisi;
+  el.kombo.textContent = durum.kombo;
 
   el.yetenekler.innerHTML = '';
   AYAR.yetenekler.forEach((y) => {
-    const acik = durum.seviye >= y.seviye;
     const d = document.createElement('div');
-    d.className = 'yetenek' + (acik ? ' acik' : '');
-    d.textContent = acik ? y.ad : '🔒 ' + y.ad + ' (Sv.' + y.seviye + ')';
-    d.title = y.aciklama;
+    d.className = 'yetenek' + (durum.seviye >= y.seviye ? ' acik' : '');
+    d.innerHTML = '<b>' + y.ad + '</b><span>Sv. ' + y.seviye + ' — ' + y.aciklama + '</span>';
     el.yetenekler.appendChild(d);
   });
 }
@@ -187,3 +190,206 @@ function perdeGoster(baslik, metin, dugmeYazi) {
 function perdeGizle() {
   el.perde.classList.add('gizli');
 }
+
+// ---------- RPG katmanı ----------
+
+function dusmanCagir() {
+  durum.dusmanMaksHp = AYAR.dusmanHpTaban + durum.dusmanIndeks * AYAR.dusmanHpArtis;
+  durum.dusmanHp = durum.dusmanMaksHp;
+  karakterleriCiz();
+  arayuzGuncelle();
+}
+
+function dusmanaHasar(miktar) {
+  durum.dusmanHp -= miktar;
+  if (durum.dusmanHp <= 0) {
+    durum.dusmanIndeks++;
+    durum.skor += 100 * durum.seviye;
+    dusmanCagir();
+  }
+  arayuzGuncelle();
+}
+
+function kahramanaHasar() {
+  let hasar = AYAR.dusmanHasarTaban + durum.dusmanIndeks * AYAR.dusmanHasarArtis;
+  if (durum.seviye >= 4) hasar = Math.round(hasar * AYAR.kalkanCarpani);   // Kalkan yeteneği
+  durum.hp -= hasar;
+  arayuzGuncelle();
+  if (durum.hp <= 0) oyunBitti();
+}
+
+function xpEkle(miktar) {
+  durum.xp += miktar;
+  let gerek = AYAR.xpTaban + (durum.seviye - 1) * AYAR.xpArtis;
+  while (durum.xp >= gerek) {
+    durum.xp -= gerek;
+    durum.seviye++;
+    gerek = AYAR.xpTaban + (durum.seviye - 1) * AYAR.xpArtis;
+  }
+  arayuzGuncelle();
+}
+
+// ---------- Tetris akışı ----------
+
+function satirlariTemizle() {
+  let temizlenen = 0;
+  for (let y = AYAR.satir - 1; y >= 0; y--) {
+    if (durum.tahta[y].every((h) => h)) {
+      durum.tahta.splice(y, 1);
+      durum.tahta.unshift(Array(AYAR.sutun).fill(null));
+      temizlenen++;
+      y++;   // kaydırma sonrası aynı indeksi tekrar kontrol et
+    }
+  }
+  if (temizlenen > 0) {
+    durum.kombo++;
+    durum.satirSayisi += temizlenen;
+    durum.skor += temizlenen * 100 * durum.seviye;
+
+    let hasar = temizlenen * AYAR.satirHasar + (durum.kombo - 1) * AYAR.komboCarpani;
+    if (temizlenen === 4) hasar += AYAR.tetrisHasar;
+    if (temizlenen === 4 && durum.seviye >= 6) hasar *= 2;              // Ateş Topu
+    if (durum.seviye >= 2 && durum.satirSayisi % 5 === 0) hasar += 15;  // Kılıç Darbesi
+
+    dusmanaHasar(hasar);
+    xpEkle(temizlenen * 10);
+  } else {
+    durum.kombo = 0;
+  }
+}
+
+function parcaYerlestir() {
+  const p = durum.parca;
+  for (let y = 0; y < p.sekil.length; y++) {
+    for (let x = 0; x < p.sekil[y].length; x++) {
+      if (!p.sekil[y][x]) continue;
+      const ty = p.y + y;
+      const tx = p.x + x;
+      if (ty < 0) { oyunBitti(); return; }
+      durum.tahta[ty][tx] = p.tip;
+    }
+  }
+  satirlariTemizle();
+  if (!durum.calisiyor) return;
+  yeniParca();
+  kahramanaHasar();   // her yerleşen parça düşmanın hamlesi
+}
+
+function yeniParca() {
+  durum.parca = durum.siradaki || rastgeleParca();
+  durum.siradaki = rastgeleParca();
+  durum.parca.x = Math.floor(AYAR.sutun / 2) - 1;
+  durum.parca.y = 0;
+  siradakiCiz();
+  if (carpisma(durum.parca.sekil, durum.parca.x, durum.parca.y)) oyunBitti();
+}
+
+function asagiIn() {
+  if (!durum.calisiyor) return;
+  const p = durum.parca;
+  if (!carpisma(p.sekil, p.x, p.y + 1)) {
+    p.y++;
+  } else {
+    parcaYerlestir();
+  }
+  tahtaCiz();
+}
+
+function hareket(dx) {
+  if (!durum.calisiyor) return;
+  const p = durum.parca;
+  if (!carpisma(p.sekil, p.x + dx, p.y)) p.x += dx;
+  tahtaCiz();
+}
+
+function dondurParca() {
+  if (!durum.calisiyor) return;
+  const p = durum.parca;
+  const yeni = dondur(p.sekil);
+  if (!carpisma(yeni, p.x, p.y)) p.sekil = yeni;
+  tahtaCiz();
+}
+
+function hizliDus() {
+  if (!durum.calisiyor) return;
+  while (!carpisma(durum.parca.sekil, durum.parca.x, durum.parca.y + 1)) {
+    durum.parca.y++;
+  }
+  parcaYerlestir();
+  tahtaCiz();
+}
+
+// ---------- Oyun döngüsü ----------
+
+let sonZaman = 0;
+
+function dongu(zaman) {
+  if (!durum.calisiyor) return;
+  durum.dusmeZamani += zaman - sonZaman;
+  sonZaman = zaman;
+
+  const aralik = Math.max(AYAR.dusmeEnAz, AYAR.dusmeBaslangic - (durum.seviye - 1) * AYAR.dusmeAzalma);
+  if (durum.dusmeZamani >= aralik) {
+    durum.dusmeZamani = 0;
+    asagiIn();
+  }
+  if (durum.calisiyor) requestAnimationFrame(dongu);
+}
+
+function oyunBitti() {
+  durum.calisiyor = false;
+  perdeGoster('Oyun Bitti', 'Skor: ' + durum.skor + ' · Seviye: ' + durum.seviye, 'Tekrar Oyna');
+}
+
+function oyunuBaslat() {
+  durum.tahta = bosTahta();
+  durum.skor = 0;
+  durum.satirSayisi = 0;
+  durum.seviye = 1;
+  durum.xp = 0;
+  durum.hp = AYAR.kahramanHp;
+  durum.dusmanIndeks = 0;
+  durum.kombo = 0;
+  durum.calisiyor = true;
+  durum.dusmeZamani = 0;
+  sonZaman = performance.now();
+
+  durum.siradaki = rastgeleParca();
+  yeniParca();
+  dusmanCagir();
+  arayuzGuncelle();
+  tahtaCiz();
+  perdeGizle();
+  requestAnimationFrame(dongu);
+}
+
+// ---------- Girdi ----------
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') hareket(-1);
+  else if (e.key === 'ArrowRight') hareket(1);
+  else if (e.key === 'ArrowDown') asagiIn();
+  else if (e.key === 'ArrowUp') dondurParca();
+  else if (e.key === ' ') { e.preventDefault(); hizliDus(); }
+});
+
+document.querySelectorAll('[data-tus]').forEach((dugme) => {
+  dugme.addEventListener('click', () => {
+    const t = dugme.dataset.tus;
+    if (t === 'sol') hareket(-1);
+    else if (t === 'sag') hareket(1);
+    else if (t === 'asagi') asagiIn();
+    else if (t === 'dondur') dondurParca();
+    else if (t === 'dusur') hizliDus();
+  });
+});
+
+el.perdeDugme.addEventListener('click', oyunuBaslat);
+
+// ---------- Başlangıç ----------
+
+(async function basla() {
+  await tumVarliklariYukle();
+  karakterleriCiz();
+  perdeGoster('Kutu Kahramanı', 'Satır temizle, düşmana hasar ver. Her yerleşen parça düşmanın hamlesidir!', 'Başla');
+})();

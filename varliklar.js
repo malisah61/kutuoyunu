@@ -1,8 +1,9 @@
 // Sprite Atölye varlık yükleyici.
-// assets/siparis.json'daki her siparişin görseli assets/<ad>.png olarak beklenir.
+// assets/siparis.json'daki her siparişin görseli assets/uretilen/<ad>.png olarak beklenir
+// (atölyenin teslim.py betiği çıktıları bu yola yazıyor).
 // Görsel yoksa (henüz üretilmediyse) kodla çizilen yedek sprite kullanılır; oyun her durumda çalışır.
 
-const VARLIK_YOLU = 'assets/';
+const VARLIK_YOLU = 'assets/uretilen/';
 
 // Sipariş listesi: assets/siparis.json ile aynı adları taşımalı.
 const VARLIK_ADLARI = {

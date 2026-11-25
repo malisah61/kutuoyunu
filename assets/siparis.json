@@ -7,7 +7,8 @@
       "stil": "pixel",
       "adet": 2,
       "seed": 11,
-      "boyut": [512, 512]
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/kahraman.png"
     },
     {
       "ad": "slime",

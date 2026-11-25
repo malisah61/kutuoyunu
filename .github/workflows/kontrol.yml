@@ -1,0 +1,65 @@
+name: kontrol
+
+# Asistan'ın geri bildirim döngüsü: her asistan/** dalı push'unda ve PR'da hızlı kontroller.
+on:
+  push:
+    branches: ['asistan/**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  kontrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: JavaScript sözdizimi
+        run: |
+          files=$(git ls-files '*.js' '*.mjs' '*.cjs' | grep -v -E '(^|/)(node_modules|dist|build|vendor|lib)/|\.min\.js$' || true)
+          fail=0
+          for f in $files; do node --check "$f" || { echo "::error file=$f::JS sözdizimi hatası"; fail=1; }; done
+          exit $fail
+
+      - name: JSON geçerliliği
+        run: |
+          fail=0
+          for f in $(git ls-files '*.json' | grep -v node_modules || true); do
+            python3 -m json.tool "$f" > /dev/null || { echo "::error file=$f::Geçersiz JSON"; fail=1; }
+          done
+          exit $fail
+
+      - name: Python sözdizimi
+        run: |
+          files=$(git ls-files '*.py' || true)
+          [ -z "$files" ] || python3 -m py_compile $files
+
+      - name: GDScript sözdizimi
+        run: |
+          files=$(git ls-files '*.gd' | grep -v -E '(^|/)addons/' || true)
+          [ -z "$files" ] && exit 0
+          pip install --quiet "gdtoolkit==4.*"
+          fail=0
+          for f in $files; do gdparse "$f" > /dev/null || { echo "::error file=$f::GDScript sözdizimi hatası"; fail=1; }; done
+          exit $fail
+
+      - uses: actions/setup-dotnet@v4
+        if: hashFiles('**/*.csproj') != ''
+        with:
+          dotnet-version: 8.0.x
+
+      - name: C# derleme
+        run: |
+          proj=$(git ls-files '*.csproj' | head -1)
+          [ -z "$proj" ] && exit 0
+          dotnet build "$proj" -nologo -v q
+
+      - name: npm testleri
+        run: |
+          [ -f package.json ] && grep -q '"test"' package.json || exit 0
+          npm install --no-audit --no-fund
+          npm test

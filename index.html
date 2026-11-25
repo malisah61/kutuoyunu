@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Kutu Kahramanı — RPG Tetris</title>
+<link rel="stylesheet" href="stil.css">
+</head>
+<body>
+<div id="uygulama">
+  <header id="ust">
+    <div class="kimlik">
+      <canvas id="kahraman" width="64" height="64"></canvas>
+      <div>
+        <div class="ad">Kahraman <span id="seviye">1</span></div>
+        <div class="cubuk hp"><i id="hp-dolu"></i><b id="hp-yazi">100/100</b></div>
+        <div class="cubuk xp"><i id="xp-dolu"></i><b id="xp-yazi">0/50</b></div>
+      </div>
+    </div>
+    <div class="kimlik sag">
+      <div>
+        <div class="ad" id="dusman-ad">Slime</div>
+        <div class="cubuk dusman"><i id="dusman-dolu"></i><b id="dusman-yazi">40/40</b></div>
+        <div class="etiket" id="dusman-etiket">Sıradaki: Yarasa</div>
+      </div>
+      <canvas id="dusman" width="64" height="64"></canvas>
+    </div>
+  </header>
+
+  <main id="orta">
+    <canvas id="oyun" width="300" height="600"></canvas>
+    <aside id="yan">
+      <div class="panel">
+        <div class="panel-baslik">Sıradaki</div>
+        <canvas id="sonraki" width="120" height="120"></canvas>
+      </div>
+      <div class="panel">
+        <div class="panel-baslik">Yetenekler</div>
+        <div id="yetenekler"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-baslik">Skor</div>
+        <div id="skor">0</div>
+        <div class="etiket">Satır: <span id="satir">0</span> · Kombo: <span id="kombo">0</span></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer id="alt">
+    <button data-tus="sol" aria-label="Sola">◀</button>
+    <button data-tus="dondur" aria-label="Döndür">⟳</button>
+    <button data-tus="sag" aria-label="Sağa">▶</button>
+    <button data-tus="asagi" aria-label="Aşağı">▼</button>
+    <button data-tus="dusur" aria-label="Hızlı düşür">⤓</button>
+  </footer>
+</div>
+
+<div id="perde" class="gizli">
+  <div class="kutu">
+    <h1 id="perde-baslik">Kutu Kahramanı</h1>
+    <p id="perde-metin">Blokları diz, düşmanı yen, seviye atla.</p>
+    <button id="perde-dugme">Başla</button>
+  </div>
+</div>
+
+<script src="ayarlar.js"></script>
+<script src="varliklar.js"></script>
+<script src="oyun.js"></script>
+</body>
+</html>

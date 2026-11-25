@@ -1,0 +1,235 @@
+:root {
+  --zemin: #12121c;
+  --panel: #1e1e2e;
+  --cizgi: #33334d;
+  --yazi: #e8e8f2;
+  --soluk: #8a8aa8;
+  --hp: #e04a5a;
+  --xp: #4ac0e0;
+  --dusman: #b04ae0;
+  --vurgu: #f0c040;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--zemin);
+  color: var(--yazi);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+#uygulama {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 6px;
+  gap: 6px;
+}
+
+/* --- Üst: kahraman ve düşman --- */
+#ust {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.kimlik {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel);
+  border: 1px solid var(--cizgi);
+  border-radius: 10px;
+  padding: 6px 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.kimlik.sag { justify-content: flex-end; text-align: right; }
+
+.kimlik canvas {
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+  flex: none;
+}
+
+.kimlik .ad {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cubuk {
+  position: relative;
+  height: 12px;
+  background: #0c0c14;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 3px;
+  min-width: 90px;
+}
+
+.cubuk i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transition: width .18s ease-out;
+}
+
+.cubuk b {
+  position: absolute;
+  inset: 0;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 12px;
+  text-align: center;
+  color: #fff;
+  text-shadow: 0 1px 2px #000;
+}
+
+.cubuk.hp i { background: var(--hp); }
+.cubuk.xp i { background: var(--xp); }
+.cubuk.dusman i { background: var(--dusman); }
+
+.etiket { font-size: 10px; color: var(--soluk); }
+
+/* --- Orta: oyun alanı --- */
+#orta {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+  min-height: 0;
+  justify-content: center;
+}
+
+#oyun {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  background: #0a0a12;
+  border: 1px solid var(--cizgi);
+  border-radius: 8px;
+  touch-action: none;
+}
+
+#yan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 108px;
+  flex: none;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--cizgi);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.panel-baslik {
+  font-size: 10px;
+  color: var(--soluk);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 4px;
+}
+
+#sonraki {
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+#yetenekler { display: flex; flex-direction: column; gap: 4px; }
+
+.yetenek {
+  font-size: 10px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: #0c0c14;
+  border: 1px solid var(--cizgi);
+  color: var(--soluk);
+  line-height: 1.25;
+}
+
+.yetenek.acik { color: var(--vurgu); border-color: var(--vurgu); }
+
+#skor { font-size: 20px; font-weight: 700; color: var(--vurgu); }
+
+/* --- Alt: dokunmatik tuşlar --- */
+#alt {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+#alt button {
+  padding: 14px 0;
+  font-size: 20px;
+  color: var(--yazi);
+  background: var(--panel);
+  border: 1px solid var(--cizgi);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+#alt button:active { background: #2c2c44; }
+
+/* --- Perde (başla / oyun sonu) --- */
+#perde {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 14, .88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 10;
+}
+
+#perde.gizli { display: none; }
+
+#perde .kutu {
+  background: var(--panel);
+  border: 1px solid var(--cizgi);
+  border-radius: 14px;
+  padding: 22px;
+  text-align: center;
+  max-width: 320px;
+}
+
+#perde h1 { font-size: 20px; margin: 0 0 8px; }
+
+#perde p {
+  font-size: 13px;
+  color: var(--soluk);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+#perde button {
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #12121c;
+  background: var(--vurgu);
+  border: 0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+@media (max-width: 380px) {
+  #yan { width: 88px; }
+  .kimlik canvas { width: 38px; height: 38px; }
+}

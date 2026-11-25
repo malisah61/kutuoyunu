@@ -229,7 +229,38 @@ html, body {
   cursor: pointer;
 }
 
+/* Telefonda tahta üstte, panel altta: dar ekranda yan yana sığmıyor */
+@media (max-width: 720px) {
+  #orta {
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  #oyun {
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  #yan {
+    width: 100%;
+    flex: none;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  #yan .panel { flex: 1 1 0; min-width: 0; }
+
+  #sonraki { max-height: 56px; width: auto; margin: 0 auto; display: block; }
+
+  #yetenekler { flex-direction: row; flex-wrap: wrap; }
+  .yetenek { flex: 1 1 45%; }
+
+  #skor { font-size: 16px; }
+}
+
 @media (max-width: 380px) {
-  #yan { width: 88px; }
   .kimlik canvas { width: 38px; height: 38px; }
 }

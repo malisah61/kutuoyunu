@@ -17,7 +17,8 @@
       "stil": "pixel",
       "adet": 2,
       "seed": 21,
-      "boyut": [512, 512]
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/slime.png"
     },
     {
       "ad": "yarasa",
@@ -26,7 +27,8 @@
       "stil": "pixel",
       "adet": 2,
       "seed": 22,
-      "boyut": [512, 512]
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/yarasa.png"
     },
     {
       "ad": "iskelet",
@@ -35,7 +37,8 @@
       "stil": "pixel",
       "adet": 2,
       "seed": 23,
-      "boyut": [512, 512]
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/iskelet.png"
     },
     {
       "ad": "golem",
@@ -44,7 +47,8 @@
       "stil": "pixel",
       "adet": 2,
       "seed": 24,
-      "boyut": [512, 512]
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/golem.png"
     },
     {
       "ad": "ejderha",
@@ -53,7 +57,8 @@
       "stil": "pixel",
       "adet": 2,
       "seed": 25,
-      "boyut": [512, 512]
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/ejderha.png"
     }
   ]
 }

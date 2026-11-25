@@ -1,0 +1,80 @@
+name: APK (Asistan)
+
+# Asistan'ın kurduğu Android derlemesi: repo kökü Capacitor ile APK yapılır.
+# main → "son" sürümü, diğer dallar → "apk-<dal>" ön sürümü (Releases sayfasında).
+on:
+  push:
+    paths-ignore: ['**.md']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Capacitor projesi (repoya dokunmadan ayrı klasörde)
+        run: |
+          mkdir -p _apk/www
+          rsync -a --exclude '.git' --exclude '.github' --exclude '_apk' --exclude 'node_modules' "./" _apk/www/
+          test -f _apk/www/index.html || { echo "::error::./index.html yok; web klasörü yanlış"; exit 1; }
+          cd _apk
+          cat > package.json <<'JSON'
+          {"name":"apk","private":true,"dependencies":{"@capacitor/android":"^7.0.0","@capacitor/core":"^7.0.0","@capacitor/cli":"^7.0.0"}}
+          JSON
+          cat > capacitor.config.json <<'JSON'
+          {"appId":"com.asistan.kutuoyunu","appName":"Kutu Kahramanı","webDir":"www"}
+          JSON
+          npm install --no-audit --no-fund
+          npx cap add android
+          npx cap sync android
+
+      - name: Sabit imza anahtarı (güncellemeler üstüne kurulsun)
+        run: |
+          mkdir -p ~/.android
+          curl -fsSL https://raw.githubusercontent.com/malisah61/asistan/main/keystore/debug.keystore -o ~/.android/debug.keystore
+
+      - name: APK derle
+        run: |
+          cd _apk/android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon -q
+          cp app/build/outputs/apk/debug/app-debug.apk "$GITHUB_WORKSPACE/${{ github.event.repository.name }}.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: apk
+          path: ${{ github.event.repository.name }}.apk
+
+      - name: Releases sayfasına koy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DAL: ${{ github.ref_name }}
+        run: |
+          if [ "$DAL" = "main" ]; then ETIKET=son; ON=""; else ETIKET="apk-$(echo "$DAL" | sed -E 's/[^A-Za-z0-9._-]+/-/g' | cut -c1-60)"; ON="--prerelease"; fi
+          gh release delete "$ETIKET" --yes --cleanup-tag || true
+          # GitHub release API'si ara sıra 5xx veriyor: birkaç kez dene; olmazsa APK yine bu çalışmanın Artifacts bölümünde
+          for i in 1 2 3 4; do
+            gh release create "$ETIKET" "${{ github.event.repository.name }}.apk" --target "$GITHUB_SHA" $ON \
+              --title "${{ github.event.repository.name }} ($DAL)" \
+              --notes "Commit: ${GITHUB_SHA::7}. Telefondan bu sayfadaki .apk dosyasını indirip kur." && exit 0
+            sleep $((i * 15))
+          done
+          echo "::warning::Release oluşturulamadı; APK bu çalışmanın Artifacts bölümünde."

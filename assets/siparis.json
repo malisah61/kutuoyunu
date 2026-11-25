@@ -1,0 +1,64 @@
+{
+  "siparisler": [
+    {
+      "ad": "kahraman",
+      "tarif": "pixel art fantasy knight hero, blue armor, golden helmet, holding a sword, full body, front view, game sprite, transparent background",
+      "tur": "karakter",
+      "stil": "pixel",
+      "adet": 2,
+      "seed": 11,
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/kahraman.png"
+    },
+    {
+      "ad": "slime",
+      "tarif": "pixel art green slime monster, cute, big eyes, full body, front view, game sprite, transparent background",
+      "tur": "dusman",
+      "stil": "pixel",
+      "adet": 2,
+      "seed": 21,
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/slime.png"
+    },
+    {
+      "ad": "yarasa",
+      "tarif": "pixel art purple bat monster, wings open, full body, front view, game sprite, transparent background",
+      "tur": "dusman",
+      "stil": "pixel",
+      "adet": 2,
+      "seed": 22,
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/yarasa.png"
+    },
+    {
+      "ad": "iskelet",
+      "tarif": "pixel art skeleton warrior monster, bone sword, full body, front view, game sprite, transparent background",
+      "tur": "dusman",
+      "stil": "pixel",
+      "adet": 2,
+      "seed": 23,
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/iskelet.png"
+    },
+    {
+      "ad": "golem",
+      "tarif": "pixel art stone golem monster, heavy rocky body, glowing eyes, full body, front view, game sprite, transparent background",
+      "tur": "dusman",
+      "stil": "pixel",
+      "adet": 2,
+      "seed": 24,
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/golem.png"
+    },
+    {
+      "ad": "ejderha",
+      "tarif": "pixel art red dragon boss monster, wings spread, fierce, full body, front view, game sprite, transparent background",
+      "tur": "dusman",
+      "stil": "pixel",
+      "adet": 2,
+      "seed": 25,
+      "boyut": [512, 512],
+      "cikti": "assets/uretilen/ejderha.png"
+    }
+  ]
+}
